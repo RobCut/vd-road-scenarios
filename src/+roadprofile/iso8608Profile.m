@@ -25,10 +25,16 @@ end
 if ~isempty(options.Seed)
     previousState = rng;
     rng(options.Seed);
+    cleanup = onCleanup(@() rng(previousState)); %#ok<NASGU>
 end
 N = round(L / dx);
+if N < 4
+    throw(MException('roadprofile:invalidLength', ...
+        'Profile requires at least 4 samples, got %d', N));
+end
+Leff = N * dx;
 x = (0:N-1)' * dx;
-dn = 1 / L;
+dn = 1 / Leff;
 if mod(N,2) == 0
     n_pos = (1:(N/2 - 1))' * dn;
     idx_pos = (2:N/2)';
@@ -37,16 +43,13 @@ else
     idx_pos = (2:floor(N/2)+1)';
 end
 G_pos = roadprofile.iso8608PSD(roadClass, n_pos);
-amp = sqrt(G_pos * dn);
+amp = sqrt(G_pos * dn / 2);
 phi = 2 * pi * rand(size(amp));
 X = zeros(N, 1);
 X(idx_pos) = amp .* exp(1i * phi);
-X(N - idx_pos + 2) = conj(flipud(X(idx_pos)));
+X(N - idx_pos + 2) = conj(X(idx_pos));
 z = real(ifft(X)) * N;
 z = z - mean(z);
-if ~isempty(options.Seed)
-    rng(previousState);
-end
 p.x = x;
 p.z = z;
 p.dx = dx;

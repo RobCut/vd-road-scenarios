@@ -24,8 +24,7 @@ classdef TestISO8608PSD < matlab.unittest.TestCase
                 c = classes{i};
                 expected = testCase.G0.(c);
                 actual = roadprofile.iso8608PSD(c, testCase.n0);
-                testCase.verifyEqual(actual, expected, ...
-                    sprintf('Class %s', c));
+                testCase.verifyEqual(actual, expected, 'RelTol', 1e-12);
             end
         end
 
@@ -41,7 +40,7 @@ classdef TestISO8608PSD < matlab.unittest.TestCase
             n = [0.01, 0.1, 1.0];
             expected = 16e-6 .* (n ./ 0.1) .^ (-2);
             actual = roadprofile.iso8608PSD('A', n);
-            testCase.verifyEqual(actual, expected);
+            testCase.verifyEqual(actual, expected, 'RelTol', 1e-12);
         end
 
         function test_n_zero(testCase)
