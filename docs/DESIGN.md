@@ -92,3 +92,39 @@ stationary stochastic process. Deterministic patterns (`sine`, and the
 future `bump`, `pothole`, `step`) do not remove the mean: their mean
 depends on the number of full periods inside the profile, and forcing
 zero would distort the physical meaning of the signal.
+
+## 10. Bump pattern
+
+The `bump` pattern produces a single isolated obstacle with a versine
+(raised-cosine) profile:
+
+    z(x) = AMP/2 * (1 - cos(2*pi*(x - X0)/W))  for X0 <= x <= X0+W
+
+Parameters:
+
+- `AMP` is the peak height, reached at the midpoint `X0 + W/2`. Not
+  peak-to-peak.
+- `W` is the base width, the length of the window where the bump is
+  non-zero.
+- `X0` is the start position; the bump extends to `X0 + W`.
+
+Design choices:
+
+- **Shape**: versine, not half-sine. The versine has zero slope at the
+  edges, so the profile is C1 continuous. A half-sine would have
+  non-zero end slopes, which is standard for regulation-defined speed
+  bumps but more demanding on numerical solvers. This is a deliberate
+  choice in favour of C1 continuity.
+- **Width minimum**: `W >= 4*dx`, so that at least five samples fall in
+  the window and the peak is resolved. Violations raise
+  `roadprofile:invalidWidth`.
+- **Overlap with road**: the bump window `[X0, X0+W]` must overlap
+  `[0, (N-1)*dx]`. If the window is entirely outside, the function
+  raises `roadprofile:invalidPosition`. Partial overlap (bump starting
+  before 0 or extending past the last sample) is allowed and the bump
+  is truncated to the road domain. Silent all-zero profiles are
+  considered user errors and are not accepted.
+- **Potholes**: `roadprofile.pothole(L, dx, DEPTH, W, X0)` returns
+  `-bump(L, dx, DEPTH, W, X0)`. `bump` itself accepts only
+  non-negative amplitude; the sign convention is captured by the
+  function name, not by the amplitude.

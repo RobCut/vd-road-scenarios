@@ -167,5 +167,13 @@ classdef TestISO8608Profile < matlab.unittest.TestCase
                 @() roadprofile.iso8608Profile(100, 0.05, 'B', Seed=[1 2]), ...
                 'MATLAB:validators:mustBeScalarOrEmpty');
         end
+
+        function test_profile_seed_non_integer(testCase)
+            %test_profile_seed_non_integer Verify that a non-integer seed
+            %   is rejected.
+            testCase.verifyError( ...
+                @() roadprofile.iso8608Profile(100, 0.05, 'B', Seed=1.5), ...
+                'MATLAB:validators:mustBeInteger');
+        end
     end
 end
