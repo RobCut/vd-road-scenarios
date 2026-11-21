@@ -1,6 +1,6 @@
-function p = iso8608Profile(roadClass, L, dx, options)
+function p = iso8608Profile(L, dx, roadClass, options)
 %ISO8608PROFILE Generate a 1D road profile from the ISO 8608 PSD.
-%   P = ISO8608PROFILE(CLASS, L, DX) returns a struct P with fields x, z,
+%   P = ISO8608PROFILE(L, DX, CLASS) returns a struct P with fields x, z,
 %   dx, containing a synthetic road profile of length L (in metres) sampled
 %   at spatial resolution DX (in metres), for the given roughness CLASS
 %   ('A' to 'H').
@@ -16,9 +16,9 @@ function p = iso8608Profile(roadClass, L, dx, options)
 %   See also roadprofile.iso8608PSD.
 
 arguments
+    L (1,1) {mustBeNumeric, mustBeFinite, mustBePositive}
+    dx (1,1) {mustBeNumeric, mustBeFinite, mustBePositive}
     roadClass {mustBeTextScalar}
-    L {mustBeNumeric, mustBePositive}
-    dx {mustBeNumeric, mustBePositive}
     options.Seed = []
 end
 

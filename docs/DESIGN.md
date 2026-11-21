@@ -39,6 +39,8 @@ possible future addition (project 16/19).
 differ from the requested `L`. The spectral resolution is `Δn = 1/Leff`.
 If `N < 4` the generator raises `roadprofile:invalidLength`, because
 the positive-frequency set would be empty or incoherent.
+For `sine` and event-based patterns, the minimum is `N >= 2`: there is no
+positive-frequency set to fill, so the `N < 4` threshold does not apply.
 
 ## 5. Seed handling
 
@@ -46,3 +48,47 @@ When a `Seed` is provided, the generator saves the current `rng` state,
 sets the requested seed, and restores the previous state on exit via
 `onCleanup`. This ensures the function is deterministic but does not
 pollute the global random state, even if it raises an error mid-way.
+
+## 6. Common profile structure
+
+Every pattern in `+roadprofile/` returns a struct with fields:
+
+- `x` — column vector of spatial positions (m), starting at 0
+- `z` — column vector of road height (m), same length as `x`
+- `dx` — spatial resolution (m)
+
+The effective length is `Leff = N*dx`, where `N = round(L/dx)`, and
+`x(end) = (N-1)*dx`. This convention is shared by `iso8608Profile`,
+`sine`, and all future patterns (`step`, `bump`, `pothole`,
+`speedBump`, `compose`, ...).
+
+Function signatures follow the pattern `pattern(L, dx, <parameters>,
+Name=Value...)`, with `L` and `dx` first because they define the
+domain. Parameters that are common to many patterns use name-value
+arguments with sensible defaults (e.g. `Phase=0`).
+
+## 7. Frequency vs wavelength
+
+Patterns that describe a periodic structure accept frequency in
+cycles/m, not wavelength in metres. This is consistent with the ISO
+8608 convention (spatial frequency `n`) and makes the Nyquist check
+trivial: `freq < 1/(2*dx)`. Users who think in wavelengths can compute
+`freq = 1/lambda`. A future helper `roadprofile.wavelengthToFrequency`
+is planned but not yet implemented.
+
+## 8. Nyquist and aliasing
+
+Patterns with a dominant frequency (currently `sine`, future `chirp`
+and `multiSine`) raise `roadprofile:invalidFrequency` if the requested
+frequency is greater than or equal to the Nyquist frequency
+`1/(2*dx)`. This prevents silent aliasing, which would produce a
+profile at a lower apparent frequency than requested.
+
+## 9. Mean behavior
+
+`iso8608Profile` removes the mean from the generated profile, so the
+resulting road height is always mean-zero. This is appropriate for a
+stationary stochastic process. Deterministic patterns (`sine`, and the
+future `bump`, `pothole`, `step`) do not remove the mean: their mean
+depends on the number of full periods inside the profile, and forcing
+zero would distort the physical meaning of the signal.

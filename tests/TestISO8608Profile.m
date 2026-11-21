@@ -7,7 +7,7 @@ classdef TestISO8608Profile < matlab.unittest.TestCase
             %   expected number of samples.
             L = 100;
             dx = 0.05;
-            p = roadprofile.iso8608Profile('A', L, dx);
+            p = roadprofile.iso8608Profile(L, dx, 'A');
             N = round(L / dx);
             testCase.verifyEqual(numel(p.x), N);
             testCase.verifyEqual(numel(p.z), N);
@@ -19,8 +19,8 @@ classdef TestISO8608Profile < matlab.unittest.TestCase
             %   the same seed produce identical output.
             L = 100;
             dx = 0.05;
-            p1 = roadprofile.iso8608Profile('B', L, dx, Seed=42);
-            p2 = roadprofile.iso8608Profile('B', L, dx, Seed=42);
+            p1 = roadprofile.iso8608Profile(L, dx, 'B', Seed=42);
+            p2 = roadprofile.iso8608Profile(L, dx, 'B', Seed=42);
             testCase.verifyEqual(p1.z, p2.z, 'AbsTol', 1e-12);
         end
 
@@ -29,8 +29,8 @@ classdef TestISO8608Profile < matlab.unittest.TestCase
             %   produce different output.
             L = 100;
             dx = 0.05;
-            p1 = roadprofile.iso8608Profile('B', L, dx, Seed=42);
-            p2 = roadprofile.iso8608Profile('B', L, dx, Seed=43);
+            p1 = roadprofile.iso8608Profile(L, dx, 'B', Seed=42);
+            p2 = roadprofile.iso8608Profile(L, dx, 'B', Seed=43);
             testCase.verifyNotEqual(p1.z, p2.z);
         end
 
@@ -39,7 +39,7 @@ classdef TestISO8608Profile < matlab.unittest.TestCase
             %   has zero mean.
             L = 100;
             dx = 0.05;
-            p = roadprofile.iso8608Profile('C', L, dx, Seed=1);
+            p = roadprofile.iso8608Profile(L, dx, 'C', Seed=1);
             testCase.verifyEqual(mean(p.z), 0, 'AbsTol', 1e-10);
         end
 
@@ -48,9 +48,9 @@ classdef TestISO8608Profile < matlab.unittest.TestCase
             %   variance increases monotonically from class A to class C.
             L = 1000;
             dx = 0.01;
-            vA = var(roadprofile.iso8608Profile('A', L, dx, Seed=1).z);
-            vB = var(roadprofile.iso8608Profile('B', L, dx, Seed=1).z);
-            vC = var(roadprofile.iso8608Profile('C', L, dx, Seed=1).z);
+            vA = var(roadprofile.iso8608Profile(L, dx, 'A', Seed=1).z);
+            vB = var(roadprofile.iso8608Profile(L, dx, 'B', Seed=1).z);
+            vC = var(roadprofile.iso8608Profile(L, dx, 'C', Seed=1).z);
             testCase.verifyGreaterThan(vB, vA);
             testCase.verifyGreaterThan(vC, vB);
         end
@@ -60,7 +60,7 @@ classdef TestISO8608Profile < matlab.unittest.TestCase
             %   G(n_k) * dn / 2 (Hermitian pair), where X = fft(z)/N.
             L = 100;
             dx = 0.05;
-            p = roadprofile.iso8608Profile('B', L, dx, Seed=42);
+            p = roadprofile.iso8608Profile(L, dx, 'B', Seed=42);
             N = numel(p.z);
             Leff = N * dx;
             Z = fft(p.z);
@@ -78,7 +78,7 @@ classdef TestISO8608Profile < matlab.unittest.TestCase
             %   sum(G(k) * dn) within statistical tolerance.
             L = 1000;
             dx = 0.01;
-            p = roadprofile.iso8608Profile('B', L, dx, Seed=1);
+            p = roadprofile.iso8608Profile(L, dx, 'B', Seed=1);
             N = numel(p.z);
             Leff = N * dx;
             k = (1:floor(N/2)-1)';
@@ -94,9 +94,9 @@ classdef TestISO8608Profile < matlab.unittest.TestCase
             L = 100;
             dx = 0.05;
             classes = {'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'};
-            prev = roadprofile.iso8608Profile('A', L, dx, Seed=1);
+            prev = roadprofile.iso8608Profile(L, dx, 'A', Seed=1);
             for i = 2:numel(classes)
-                curr = roadprofile.iso8608Profile(classes{i}, L, dx, Seed=1);
+                curr = roadprofile.iso8608Profile(L, dx, classes{i}, Seed=1);
                 testCase.verifyEqual(curr.z, 2 * prev.z, 'RelTol', 1e-10);
                 prev = curr;
             end
@@ -106,7 +106,7 @@ classdef TestISO8608Profile < matlab.unittest.TestCase
             %test_profile_too_short Verify that a profile shorter than 4
             %   samples raises roadprofile:invalidLength.
             testCase.verifyError( ...
-                @() roadprofile.iso8608Profile('A', 0.1, 0.05), ...
+                @() roadprofile.iso8608Profile(0.1, 0.05, 'A'), ...
                 'roadprofile:invalidLength');
         end
 
@@ -114,7 +114,7 @@ classdef TestISO8608Profile < matlab.unittest.TestCase
             %test_profile_invalid_class Verify that an unknown class
             %   raises roadprofile:invalidClass.
             testCase.verifyError( ...
-                @() roadprofile.iso8608Profile('Z', 100, 0.05), ...
+                @() roadprofile.iso8608Profile(100, 0.05, 'Z'), ...
                 'roadprofile:invalidClass');
         end
 
@@ -123,7 +123,7 @@ classdef TestISO8608Profile < matlab.unittest.TestCase
             %   is correct when L/dx is not an integer (Leff = N*dx).
             L = 100;
             dx = 0.03;
-            p = roadprofile.iso8608Profile('B', L, dx, Seed=42);
+            p = roadprofile.iso8608Profile(L, dx, 'B', Seed=42);
             N = numel(p.z);
             Leff = N * dx;
             Z = fft(p.z);
@@ -134,6 +134,14 @@ classdef TestISO8608Profile < matlab.unittest.TestCase
             target = G_theory * (1/Leff) / 2;
             relErr = abs(X_amp_sq - target) ./ target;
             testCase.verifyLessThan(max(relErr), 1e-8);
+        end
+
+        function test_profile_length_inf(testCase)
+            %test_profile_length_inf Verify that infinite L is rejected
+            %   (mustBePositive alone accepts Inf).
+            testCase.verifyError( ...
+                @() roadprofile.iso8608Profile(Inf, 0.05, 'B'), ...
+                'MATLAB:validators:mustBeFinite');
         end
     end
 end
