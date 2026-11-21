@@ -22,7 +22,7 @@ function p = sine(L, dx, freq, amplitude, options)
 arguments
     L (1,1) {mustBeNumeric, mustBeFinite, mustBePositive}
     dx (1,1) {mustBeNumeric, mustBeFinite, mustBePositive}
-    freq (1,1) {mustBeNumeric, mustBePositive}
+    freq (1,1) {mustBeNumeric, mustBeFinite, mustBePositive}
     amplitude (1,1) {mustBeNumeric, mustBeFinite, mustBeNonnegative}
     options.Phase (1,1) {mustBeNumeric ,mustBeFinite} = 0
 end

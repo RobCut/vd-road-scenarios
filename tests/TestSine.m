@@ -121,5 +121,13 @@ classdef TestSine < matlab.unittest.TestCase
                 @() roadprofile.sine(Inf, 0.05, 0.2, 0.01), ...
                 'MATLAB:validators:mustBeFinite');
         end
+
+        function test_sine_freq_inf(testCase)
+            %test_sine_freq_inf Verify that infinite freq is rejected
+            %   with mustBeFinite (before the Nyquist check).
+            testCase.verifyError( ...
+                @() roadprofile.sine(100, 0.05, Inf, 0.01), ...
+                'MATLAB:validators:mustBeFinite');
+        end
     end
 end

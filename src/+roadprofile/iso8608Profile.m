@@ -19,7 +19,7 @@ arguments
     L (1,1) {mustBeNumeric, mustBeFinite, mustBePositive}
     dx (1,1) {mustBeNumeric, mustBeFinite, mustBePositive}
     roadClass {mustBeTextScalar}
-    options.Seed = []
+        options.Seed {mustBeNumeric, mustBeInteger, mustBeNonnegative, mustBeScalarOrEmpty} = []
 end
 
 if ~isempty(options.Seed)

@@ -143,5 +143,29 @@ classdef TestISO8608Profile < matlab.unittest.TestCase
                 @() roadprofile.iso8608Profile(Inf, 0.05, 'B'), ...
                 'MATLAB:validators:mustBeFinite');
         end
+
+        function test_profile_seed_string(testCase)
+            %test_profile_seed_string Verify that a non-numeric seed
+            %   is rejected before rng is called.
+            testCase.verifyError( ...
+                @() roadprofile.iso8608Profile(100, 0.05, 'B', Seed="abc"), ...
+                'MATLAB:validators:mustBeNumeric');
+        end
+
+        function test_profile_seed_negative(testCase)
+            %test_profile_seed_negative Verify that a negative seed is
+            %   rejected.
+            testCase.verifyError( ...
+                @() roadprofile.iso8608Profile(100, 0.05, 'B', Seed=-1), ...
+                'MATLAB:validators:mustBeNonnegative');
+        end
+
+        function test_profile_seed_vector(testCase)
+            %test_profile_seed_vector Verify that a vector seed is
+            %   rejected before rng is called.
+            testCase.verifyError( ...
+                @() roadprofile.iso8608Profile(100, 0.05, 'B', Seed=[1 2]), ...
+                'MATLAB:validators:mustBeScalarOrEmpty');
+        end
     end
 end
