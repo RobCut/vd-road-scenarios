@@ -115,16 +115,21 @@ Design choices:
   non-zero end slopes, which is standard for regulation-defined speed
   bumps but more demanding on numerical solvers. This is a deliberate
   choice in favour of C1 continuity.
-- **Width minimum**: `W >= 4*dx`, so that at least five samples fall in
-  the window and the peak is resolved. Violations raise
-  `roadprofile:invalidWidth`.
+- **Width minimum**: `W >= 4*dx`. Below this threshold the window
+  contains at most four samples and the shape is degenerate; the
+  function raises `roadprofile:invalidWidth`. Note that 4*dx does not
+  guarantee a well-sampled peak: if `X0` is not aligned with the grid,
+  the highest sample can be up to 15% below `AMP` (worst case with
+  `W = 4*dx` and offset `dx/2`). The peak sampling error drops below
+  1% for `W >= 16*dx`.
 - **Overlap with road**: the bump window `[X0, X0+W]` must overlap
-  `[0, (N-1)*dx]`. If the window is entirely outside, the function
-  raises `roadprofile:invalidPosition`. Partial overlap (bump starting
-  before 0 or extending past the last sample) is allowed and the bump
-  is truncated to the road domain. Silent all-zero profiles are
-  considered user errors and are not accepted.
-- **Potholes**: `roadprofile.pothole(L, dx, DEPTH, W, X0)` returns
-  `-bump(L, dx, DEPTH, W, X0)`. `bump` itself accepts only
-  non-negative amplitude; the sign convention is captured by the
-  function name, not by the amplitude.
+  `[0, (N-1)*dx]` with non-zero length. Mere touching at a single
+  point (e.g. `X0 + W == 0` or `X0 == (N-1)*dx`) is treated as no
+  overlap and raises `roadprofile:invalidPosition`. Partial overlap
+  (bump starting before 0 or extending past the last sample) is
+  allowed and the bump is truncated to the road domain. Silent
+  all-zero profiles are considered user errors and are not accepted.
+- **Potholes**: `roadprofile.pothole(L, dx, DEPTH, W, X0)` negates the
+  `z` field of `bump(L, dx, DEPTH, W, X0)`. `x` and `dx` are unchanged.
+  `bump` itself accepts only non-negative amplitude; the sign
+  convention is captured by the function name, not by the amplitude.

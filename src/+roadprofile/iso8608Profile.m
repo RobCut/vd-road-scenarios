@@ -29,8 +29,8 @@ if ~isempty(options.Seed)
 end
 N = round(L / dx);
 if N < 4
-    throw(MException('roadprofile:invalidLength', ...
-        'Profile requires at least 4 samples, got %d', N));
+    error('roadprofile:invalidLength', ...
+        'Profile requires at least 4 samples, got %d', N);
 end
 Leff = N * dx;
 x = (0:N-1)' * dx;

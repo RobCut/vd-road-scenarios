@@ -56,8 +56,7 @@ classdef TestBump < matlab.unittest.TestCase
             %   partially visible bump).
             A = 0.05; w = 1.0; x0 = -0.5;
             p = roadprofile.bump(100, 0.01, A, w, x0);
-            testCase.verifyGreaterThan(max(p.z), 0);
-            testCase.verifyLessThanOrEqual(max(p.z), A);
+            testCase.verifyEqual(p.z(1), A, 'AbsTol', 1e-12);
         end
 
         function test_bump_width_too_small(testCase)
@@ -111,10 +110,14 @@ classdef TestBump < matlab.unittest.TestCase
         end
 
         function test_bump_width_exceeds_road(testCase)
-            %test_bump_width_exceeds_road Verify that a bump wider than
-            %   the road does not error (it is simply truncated).
-            p = roadprofile.bump(10, 0.05, 0.05, 20, 0);
-            testCase.verifyGreaterThan(max(p.z), 0);
+            %test_bump_width_exceeds_road Verify that a bump extending
+            %   beyond the road is truncated to the last sample with the
+            %   correct versine value.
+            A = 0.05; w = 20; x0 = 0; L = 10; dx = 0.05;
+            p = roadprofile.bump(L, dx, A, w, x0);
+            xEnd = p.x(end);
+            expected = (A/2) * (1 - cos(2*pi*(xEnd - x0) / w));
+            testCase.verifyEqual(p.z(end), expected, 'AbsTol', 1e-12);
         end
 
         function test_bump_length_inf(testCase)
@@ -122,6 +125,15 @@ classdef TestBump < matlab.unittest.TestCase
             testCase.verifyError( ...
                 @() roadprofile.bump(Inf, 0.05, 0.05, 0.6, 10), ...
                 'MATLAB:validators:mustBeFinite');
+        end
+
+        function test_bump_area(testCase)
+            %test_bump_area Verify that the integral of the versine over
+            %   the window equals A*w/2 (known analytic result).
+            A = 0.05; w = 0.6; x0 = 10; dx = 0.01;
+            p = roadprofile.bump(100, dx, A, w, x0);
+            integral = sum(p.z) * dx;
+            testCase.verifyEqual(integral, A * w / 2, 'RelTol', 1e-6);
         end
     end
 end

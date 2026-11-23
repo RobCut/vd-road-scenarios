@@ -47,7 +47,7 @@ switch roadClass
     case "H"
         G0 = 262144e-6;
     otherwise
-        throw(MException('roadprofile:invalidClass', ...
-            'Unknown road roughness class: %s', roadClass));
+        error('roadprofile:invalidClass', ...
+            'Unknown road roughness class: %s', roadClass);
 end
 end

@@ -39,13 +39,13 @@ if N < 2
 end
 xEnd = (N - 1) * dx;
 if width < 4 * dx
-    throw(MException('roadprofile:invalidWidth', ...
-        'Bump width %g m is less than 4*dx = %g m', width, 4*dx));
+    error('roadprofile:invalidWidth', ...
+        'Bump width %g m is less than 4*dx = %g m', width, 4*dx);
 end
 if position + width <= 0 || position >= xEnd
-    throw(MException('roadprofile:invalidPosition', ...
+    error('roadprofile:invalidPosition', ...
         'Bump window [%g, %g] does not overlap road [0, %g]', ...
-        position, position + width, xEnd));
+        position, position + width, xEnd);
 end
 x = (0:N-1)' * dx;
 z = zeros(N, 1);
