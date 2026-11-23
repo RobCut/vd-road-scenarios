@@ -133,3 +133,17 @@ Design choices:
   `z` field of `bump(L, dx, DEPTH, W, X0)`. `x` and `dx` are unchanged.
   `bump` itself accepts only non-negative amplitude; the sign
   convention is captured by the function name, not by the amplitude.
+
+  ## 11. Pothole pattern
+
+`pothole(L, dx, DEPTH, W, X0)` is the negation of `bump(L, dx, DEPTH, W, X0)`
+on the `z` field, with `DEPTH >= 0`. The parameter name is `depth` (not
+`amplitude`) because the sign is captured by the function name, not by
+the value. All validity constraints of `bump` apply unchanged: width
+minimum `W >= 4*dx`, overlap requirement, `N >= 2`, finiteness and
+non-negativity of the amplitude. The `x` and `dx` fields are identical
+to the corresponding `bump` profile.
+
+This relationship means that any future fix or refinement to `bump`
+(for example a change in the width minimum or the shape) propagates
+automatically to `pothole`.
