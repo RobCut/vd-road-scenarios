@@ -147,3 +147,21 @@ to the corresponding `bump` profile.
 This relationship means that any future fix or refinement to `bump`
 (for example a change in the width minimum or the shape) propagates
 automatically to `pothole`.
+
+## 12. Flat pattern
+
+`flat(L, dx, Height=0)` produces a constant road elevation:
+
+    z(x) = Height     for all x in [0, (N-1)*dx]
+
+Default `Height = 0` makes it a gap filler in composed scenarios: any
+region not covered by an explicit segment is flat at zero elevation.
+Non-zero `Height` produces a raised or lowered constant surface, useful
+for testing discontinuities and step responses.
+
+`flat` does not smooth transitions. A non-zero height at the boundary
+between two segments produces a step in the profile. This is a
+deliberate choice: smoothing would hide a discontinuity from the user,
+whereas for robustness testing the user may want to inject one
+explicitly. The v0.1 scope deliberately omits fade/transition regions
+in `compose`; a future release may add them as an optional feature.
