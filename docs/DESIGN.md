@@ -25,8 +25,13 @@ uniform distribution in `[0, 2π)`. Consequences:
   exactly by construction.
 - Profiles of different classes with the same seed are exact scaled
   copies (factor 2 per class), because only the amplitudes change.
-- The generated profile is approximately Gaussian by the central limit
-  theorem, since it is a sum of many independent sinusoids.
+- The generated profile is a sum of many independent sinusoids with
+  fixed amplitudes and uniform random phases. The distribution of the
+  *process over many realizations* approaches Gaussian, but a single
+  realization is dominated by its longest-wavelength components: the
+  first harmonic carries approximately 61% of the variance. "Gaussian"
+  should therefore be read as an ensemble statement, not as a
+  property of one sample profile.
 
 The `psd_comparison.png` figure in `results/` shows theory against a
 multi-realization average; it illustrates the spectrum but is not a
@@ -150,13 +155,13 @@ automatically to `pothole`.
 
 ## 12. Flat pattern
 
-`flat(L, dx, Height=0)` produces a constant road elevation:
+`flat(L, dx, H=0)` produces a constant road elevation:
 
     z(x) = Height     for all x in [0, (N-1)*dx]
 
-Default `Height = 0` makes it a gap filler in composed scenarios: any
+Default `H = 0` makes it a gap filler in composed scenarios: any
 region not covered by an explicit segment is flat at zero elevation.
-Non-zero `Height` produces a raised or lowered constant surface, useful
+Non-zero `H` produces a raised or lowered constant surface, useful
 for testing discontinuities and step responses.
 
 `flat` does not smooth transitions. A non-zero height at the boundary
@@ -165,3 +170,65 @@ deliberate choice: smoothing would hide a discontinuity from the user,
 whereas for robustness testing the user may want to inject one
 explicitly. The v0.1 scope deliberately omits fade/transition regions
 in `compose`; a future release may add them as an optional feature.
+
+## 13. Compose
+
+`compose(L, dx, SEGMENTS, RemoveMean=false, Seed=[])` assembles a
+composite profile from a struct array of segments. Each element has
+fields `Start`, `Stop`, `Type`, `Params`.
+
+**Tiling on indices.** Segment boundaries are snapped to the nearest
+sample:
+
+    i0 = round(Start / dx)
+    i1 = round(Stop / dx)
+
+and the segment covers samples `i0+1 : i1` (stop excluded). Its local
+length is `Lseg = (i1 - i0) * dx`, which is exactly the length passed
+to the pattern. Consequence: two contiguous segments `[a, b)` and
+`[b, c)` tile without gaps or overlaps, regardless of `a, b, c` being
+multiples of `dx`.
+
+**Validation.** Each segment is checked for the four required fields
+and for `Start` and `Stop` being finite numeric scalars. A segment
+with `i0 < 0`, `i1 > N`, or `i0 >= i1` raises
+`roadprofile:invalidSegment`. A `Type` not in the allowed set
+(`iso8608`, `sine`, `bump`, `pothole`, `flat`) raises
+`roadprofile:unknownPattern`. Pattern-level errors (for example
+`invalidWidth` from a bump whose segment is too short) are wrapped as
+`roadprofile:invalidSegment` with the segment index in the message
+and the original exception as cause.
+
+**Overlap and gaps.** Overlapping segments are summed where they
+overlap. Regions not covered by any segment remain at zero elevation
+(equivalent to `flat(L, dx)`).
+
+**Relative positions.** Parameters in `Params` are passed positionally
+to the pattern after `(Lseg, dx)`. The `position` argument of `bump`
+and `pothole` is therefore relative to the start of the segment, not to
+the global `x`. A bump with `Start = 50, position = 0` peaks at
+`x = 50 + W/2`.
+
+**Seed derivation.** Every `iso8608` segment receives a derived seed,
+whether or not a global `Seed` is provided. With a global seed, the
+derived seeds come from a `RandStream` initialized with that seed, so
+the whole composition is deterministic. Without a global seed, the
+derived seeds come from the global random stream (different at every
+run), but they are recorded in `p.segments(k).SeedUsed`, so each
+segment can still be reproduced individually. To replay the whole
+composition, save the `SeedUsed` values or pass a global `Seed`.
+
+**Independent realizations.** Each `iso8608` segment is an independent
+realization: it has no content below `1/Lseg`, and it is mean-zero on
+its own domain. Two 100 m B segments are therefore *not* equivalent to
+one 200 m B profile: the low-frequency content differs, and the mean
+of each segment is removed separately before being composed.
+
+**Discontinuities.** `compose` does not smooth transitions. If a
+stochastic segment ends at a non-zero elevation and the next starts
+at zero, the profile has a step at the boundary. This is a deliberate
+design choice, consistent with `flat` (see §12). Smoothing will be
+added as an optional feature in a future release if needed.
+
+**Empty segments.** An empty `segments` array is valid and produces a
+flat zero profile.
