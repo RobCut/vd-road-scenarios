@@ -134,7 +134,7 @@ Design choices:
   `bump` itself accepts only non-negative amplitude; the sign
   convention is captured by the function name, not by the amplitude.
 
-  ## 11. Pothole pattern
+## 11. Pothole pattern
 
 `pothole(L, dx, DEPTH, W, X0)` is the negation of `bump(L, dx, DEPTH, W, X0)`
 on the `z` field, with `DEPTH >= 0`. The parameter name is `depth` (not
