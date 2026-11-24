@@ -24,7 +24,7 @@ end
 
 if ~isempty(options.Seed)
     previousState = rng;
-    rng(options.Seed);
+    rng(options.Seed, 'twister');
     cleanup = onCleanup(@() rng(previousState)); %#ok<NASGU>
 end
 N = round(L / dx);

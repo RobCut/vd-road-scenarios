@@ -20,7 +20,7 @@ classdef TestFlat < matlab.unittest.TestCase
             %test_flat_constant_height Verify that z equals Height
             %   when specified.
             h = 0.02;
-            p = roadprofile.flat(100, 0.05, Height=h);
+            p = roadprofile.flat(100, 0.05, h);
             testCase.verifyTrue(all(p.z == h));
         end
 
@@ -42,14 +42,14 @@ classdef TestFlat < matlab.unittest.TestCase
         function test_flat_height_inf(testCase)
             %test_flat_height_inf Verify that infinite Height is rejected.
             testCase.verifyError( ...
-                @() roadprofile.flat(100, 0.05, Height=Inf), ...
+                @() roadprofile.flat(100, 0.05, Inf), ...
                 'MATLAB:validators:mustBeFinite');
         end
 
         function test_flat_height_nan(testCase)
             %test_flat_height_nan Verify that NaN Height is rejected.
             testCase.verifyError( ...
-                @() roadprofile.flat(100, 0.05, Height=NaN), ...
+                @() roadprofile.flat(100, 0.05, NaN), ...
                 'MATLAB:validators:mustBeFinite');
         end
     end
