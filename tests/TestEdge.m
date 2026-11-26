@@ -36,18 +36,32 @@ classdef TestEdge < matlab.unittest.TestCase
 
         function test_edge_start_after_stop(testCase)
             %test_edge_start_after_stop Verify that start >= stop raises
-            %   roadprofile:invalidSegment.
+            %   roadprofile:invalidPosition.
             testCase.verifyError( ...
                 @() roadprofile.edge(100, 0.05, 0.05, 40, 20), ...
-                'roadprofile:invalidSegment');
+                'roadprofile:invalidPosition');
         end
 
         function test_edge_stop_beyond_road(testCase)
             %test_edge_stop_beyond_road Verify that stop > Leff raises
-            %   roadprofile:invalidSegment.
+            %   roadprofile:invalidPosition.
             testCase.verifyError( ...
                 @() roadprofile.edge(10, 0.05, 0.05, 5, 20), ...
-                'roadprofile:invalidSegment');
+                'roadprofile:invalidPosition');
+        end
+
+        function test_edge_reaches_road_end(testCase)
+            %test_edge_reaches_road_end Verify that stop = L is accepted.
+            p = roadprofile.edge(10, 0.05, 0.05, 5, 10);
+            testCase.verifyEqual(p.z(end), 0.05);
+        end
+
+        function test_edge_empty_window(testCase)
+            %test_edge_empty_window Verify that a window between two samples
+            %   is rejected.
+            testCase.verifyError( ...
+                @() roadprofile.edge(10, 0.05, 0.05, 5.01, 5.04), ...
+                'roadprofile:invalidPosition');
         end
     end
 end

@@ -3,6 +3,7 @@ function p = edge(L, dx, height, startPos, stopPos)
 %   P = EDGE(L, DX, H, S, E) returns a profile that is 0 outside [S, E) and
 %   H inside. The two boundaries are true steps (discontinuous slope). This
 %   is a robustness pattern: real roads do not have perfect plateaus.
+%   Requires 0 <= S < E <= N*DX and at least one sample in [S, E).
 %
 %   See also roadprofile.step, roadprofile.flat.
 
@@ -19,13 +20,20 @@ if N < 2
     error('roadprofile:invalidLength', ...
         'Profile requires at least 2 samples, got %d', N);
 end
-if startPos < 0 || stopPos > (N-1)*dx || startPos >= stopPos
-    error('roadprofile:invalidSegment', ...
-        'edge window [%g, %g] invalid for road [0, %g]', ...
-        startPos, stopPos, (N-1)*dx);
+Leff = N * dx;
+if startPos < 0 || stopPos > Leff + 1e-9*dx || startPos >= stopPos
+    error('roadprofile:invalidPosition', ...
+        'edge window [%g, %g) invalid for road [0, %g]', ...
+        startPos, stopPos, Leff);
 end
 x = (0:N-1)' * dx;
-z = height * (x >= startPos & x < stopPos);
+inside = x >= startPos & x < stopPos;
+if ~any(inside)
+    error('roadprofile:invalidPosition', ...
+        'edge window [%g, %g) contains no sample (dx = %g)', ...
+        startPos, stopPos, dx);
+end
+z = height * inside;
 
 p.x = x;
 p.z = z;
