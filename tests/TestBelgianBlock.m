@@ -49,5 +49,19 @@ classdef TestBelgianBlock < matlab.unittest.TestCase
                 @() roadprofile.belgianBlock(10, 0.05, 0.03, 0.05), ...
                 'roadprofile:invalidFrequency');
         end
+
+        function test_rms_height(testCase)
+            %test_rms_height Verify that the RMS height equals the requested value.
+            p = roadprofile.belgianBlock(10, 0.005, 0.03, 0.2, Seed=1);
+            testCase.verifyEqual(sqrt(mean(p.z.^2)), 0.03, 'RelTol', 1e-12);
+        end
+
+        function test_belgian_too_short(testCase)
+            %test_belgian_too_short Verify that a road shorter than
+            %   wavelength/bw raises roadprofile:invalidLength.
+            testCase.verifyError( ...
+                @() roadprofile.belgianBlock(0.5, 0.005, 0.03, 0.2), ...
+                'roadprofile:invalidLength');
+        end
     end
 end

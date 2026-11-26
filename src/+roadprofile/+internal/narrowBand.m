@@ -1,10 +1,11 @@
-function p = narrowBand(L, dx, amplitude, wavelength, bw, seed, name)
+function p = narrowBand(L, dx, rmsHeight, wavelength, bw, seed, name)
 %NARROWBAND Narrow-band stochastic surface for proving-ground patterns.
 %   Called by belgianBlock and cobblestone. Not part of the public API.
 %
 %   Generates a Gaussian PSD centered at 1/wavelength with relative
 %   bandwidth BW (fraction of the center frequency). The profile is
-%   normalized so that its variance equals AMPLITUDE^2.
+%   normalized so that its variance equals RMSHEIGHT^2. 
+%   The road must be at least wavelength/BW long.
 
 N = round(L / dx);
 if N < 4
@@ -15,6 +16,11 @@ Leff = N * dx;
 dn = 1 / Leff;
 n0 = 1 / wavelength;
 sigmaN = bw * n0;
+if 1/Leff > sigmaN
+    error('roadprofile:invalidLength', ...
+        '%s: length %g m is shorter than wavelength/bw = %g m', ...
+        name, Leff, 1/sigmaN);
+end
 nNyq = 1 / (2 * dx);
 if n0 + 3 * sigmaN > nNyq
     error('roadprofile:invalidFrequency', ...
@@ -34,7 +40,7 @@ else
     idxPos = (2:floor(N/2)+1)';
 end
 envelope = exp(-0.5 * ((nPos - n0) / sigmaN).^2);
-C = amplitude^2 / (dn * sum(envelope));
+C = rmsHeight^2 / (dn * sum(envelope));
 GPos = C * envelope;
 amp = sqrt(GPos * dn / 2);
 phi = 2 * pi * rand(size(amp));

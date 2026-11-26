@@ -33,5 +33,11 @@ classdef TestCobblestone < matlab.unittest.TestCase
             p = roadprofile.cobblestone(10, 0.005, 0.02, 0.1, Seed=1);
             testCase.verifyEqual(mean(p.z), 0, 'AbsTol', 1e-10);
         end
+
+        function test_rms_height(testCase)
+            %test_rms_height Verify that the RMS height equals the requested value.
+            p = roadprofile.cobblestone(10, 0.005, 0.02, 0.1, Seed=1);
+            testCase.verifyEqual(sqrt(mean(p.z.^2)), 0.02, 'RelTol', 1e-12);
+        end
     end
 end

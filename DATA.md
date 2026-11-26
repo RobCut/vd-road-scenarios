@@ -10,9 +10,7 @@ generated synthetically from published formulas:
   at the edges.
 - **Narrow-band stochastic surfaces (belgianBlock, cobblestone)**: a
   Gaussian PSD centered at `1/wavelength` with a configurable relative
-  bandwidth. The relative bandwidth values (30% for Belgian block, 15%
-  for cobblestone) are chosen empirically from published proving-ground
-  descriptions.
+  bandwidth. The relative bandwidths (0.30 and 0.15) are illustrative choices of the author, not fitted to measured surfaces.
 - **Discontinuities (edge, step, kink)**: mathematical idealizations,
   not measured road features.
 
