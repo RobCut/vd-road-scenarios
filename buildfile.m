@@ -1,5 +1,5 @@
 function plan = buildfile
-%BUILDFILE Build tasks for vehkit.
+%BUILDFILE Build tasks for vd-road-scenarios.
 %   buildtool reads this file automatically from the repository root.
 %   Available tasks:
 %    test - run the full test suite (default)
