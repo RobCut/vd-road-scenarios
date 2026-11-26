@@ -1,7 +1,8 @@
 %CATALOG_OVERVIEW Plot every pattern in the catalog on a common grid.
 %   Produces results/catalog_overview.png, the main figure for the README.
 
-clear; clc; close all;
+%clear; 
+clc; close all;
 
 L = 20; dx = 0.01;
 
@@ -9,8 +10,8 @@ patterns = {
     'sine',           @() roadprofile.sine(L, dx, 2.0, 0.02)
     'iso8608 class B', @() roadprofile.iso8608Profile(L, dx, 'B', Seed=1)
     'washboard',      @() roadprofile.washboard(L, dx, 0.02, 0.5)
-    'belgianBlock',   @() roadprofile.belgianBlock(L, dx, 0.03, 0.2, Seed=1)
-    'cobblestone',    @() roadprofile.cobblestone(L, dx, 0.02, 0.1, Seed=1)
+    'belgianBlock',   @() roadprofile.belgianBlock(L, dx, 0.008, 0.2, Seed=1)
+    'cobblestone',    @() roadprofile.cobblestone(L, dx, 0.005, 0.1, Seed=1)
     'bump',           @() roadprofile.bump(L, dx, 0.10, 0.6, 10)
     'pothole',        @() roadprofile.pothole(L, dx, 0.05, 0.6, 10)
     'crest',          @() roadprofile.crest(L, dx, 0.05, 0.6, 10)
