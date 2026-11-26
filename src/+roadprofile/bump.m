@@ -32,11 +32,7 @@ arguments
     position (1,1) {mustBeNumeric, mustBeFinite}
 end
 
-N = round(L / dx);
-if N < 2
-    error('roadprofile:invalidLength', ...
-        'Profile requires at least 2 samples, got %d', N);
-end
+[x, N] = roadprofile.internal.sampleGrid(L, dx, 2);
 xEnd = (N - 1) * dx;
 if width < 4 * dx
     error('roadprofile:invalidWidth', ...
@@ -47,7 +43,6 @@ if position + width <= 0 || position >= xEnd
         'Bump window [%g, %g] does not overlap road [0, %g]', ...
         position, position + width, xEnd);
 end
-x = (0:N-1)' * dx;
 z = zeros(N, 1);
 inWindow = x > position & x <= position + width;
 xi = x(inWindow);

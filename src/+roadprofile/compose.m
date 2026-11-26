@@ -37,12 +37,7 @@ arguments
     options.Seed {mustBeNumeric, mustBeInteger, mustBeNonnegative, mustBeScalarOrEmpty} = []
 end
 
-N = round(L / dx);
-if N < 2
-    error('roadprofile:invalidLength', ...
-        'Profile requires at least 2 samples, got %d', N);
-end
-x = (0:N-1)' * dx;
+[x, N] = roadprofile.internal.sampleGrid(L, dx, 2);
 z = zeros(N, 1);
 if isempty(segments)
     p.x = x;
@@ -107,41 +102,11 @@ for k = 1:numel(segments)
                     seg.Params{:}, "Seed", derivedSeed);
                 segmentsOut(k).SeedUsed = derivedSeed;
 
-            case 'multiSine'
-                segZ = roadprofile.multiSine(Lseg, dx, seg.Params{:});
-
-            case 'chirp'
-                segZ = roadprofile.chirp(Lseg, dx, seg.Params{:});
-
-            case 'washboard'
-                segZ = roadprofile.washboard(Lseg, dx, seg.Params{:});
-
-            case 'valley'
-                segZ = roadprofile.valley(Lseg, dx, seg.Params{:});
-
-            case 'step'
-                segZ = roadprofile.step(Lseg, dx, seg.Params{:});
-
-            case 'kink'
-                segZ = roadprofile.kink(Lseg, dx, seg.Params{:});
-
-            case 'edge'
-                segZ = roadprofile.edge(Lseg, dx, seg.Params{:});
-
-            case 'crest'
-                segZ = roadprofile.crest(Lseg, dx, seg.Params{:});
-
-            case 'sine'
-                segZ = roadprofile.sine(Lseg, dx, seg.Params{:});
-
-            case 'bump'
-                segZ = roadprofile.bump(Lseg, dx, seg.Params{:});
-
-            case 'pothole'
-                segZ = roadprofile.pothole(Lseg, dx, seg.Params{:});
-
-            case 'flat'
-                segZ = roadprofile.flat(Lseg, dx, seg.Params{:});
+            case {'sine', 'washboard', 'chirp', 'multiSine', 'bump', ...
+                    'pothole', 'crest', 'valley', 'edge', 'step', ...
+                    'kink', 'flat'}
+                segZ = feval("roadprofile." + string(seg.Type), ...
+                    Lseg, dx, seg.Params{:});
 
             otherwise
                 error('roadprofile:unknownPattern', ...

@@ -14,12 +14,7 @@ arguments
     slopeAfter (1,1) {mustBeNumeric, mustBeFinite}
 end
 
-N = round(L / dx);
-if N < 2
-    error('roadprofile:invalidLength', ...
-        'Profile requires at least 2 samples, got %d', N);
-end
-x = (0:N-1)' * dx;
+[x, N] = roadprofile.internal.sampleGrid(L, dx, 2);
 z = zeros(N, 1);
 before = x < position;
 z(before) = slopeBefore * x(before);

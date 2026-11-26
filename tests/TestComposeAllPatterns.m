@@ -23,7 +23,7 @@ classdef TestComposeAllPatterns < matlab.unittest.TestCase
 
     methods (Test)
         function test_compose_dispatches(testCase, Segment)
-            %test_compose_dispatches Verify that matches the direct call.
+            %test_compose_dispatches Verify that compose matches the direct call.
             L = 10; dx = 0.01;
             segs = struct( ...
                 'Start', 2, ...

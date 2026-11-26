@@ -18,7 +18,7 @@ function G = iso8608PSD(roadClass, n)
 
 arguments
     roadClass {mustBeTextScalar}
-    n {mustBeNumeric, mustBePositive}
+    n {mustBeNumeric, mustBePositive, mustBeFinite}
 end
 
 roadClass = upper(string(roadClass));

@@ -17,7 +17,7 @@ function p = sine(L, dx, freq, amplitude, options)
 %   mean-centered: its mean is zero only when the number of periods in
 %   the profile is an integer.
 %
-%   See also roadprofile.iso8608Profile, roadprofile.speedBump.
+%   See also roadprofile.iso8608Profile, roadprofile.bump.
 
 arguments
     L (1,1) {mustBeNumeric, mustBeFinite, mustBePositive}
@@ -27,18 +27,13 @@ arguments
     options.Phase (1,1) {mustBeNumeric ,mustBeFinite} = 0
 end
 
-N = round(L / dx);
-if N < 2
-    error('roadprofile:invalidLength', ...
-        'Profile requires at least 2 samples, got %d', N);
-end
+[x, N] = roadprofile.internal.sampleGrid(L, dx, 2);
 fNyq = 1 / (2 * dx);
 if freq >= fNyq
     error('roadprofile:invalidFrequency', ...
         'Frequency %g cycles/m exceeds or equals Nyquist %g cycles/m (dx = %g m)', ...
         freq, fNyq, dx);
 end
-x = (0:N-1)' * dx;
 z = amplitude * sin(2 * pi * freq * x + options.Phase);
 
 p.x = x;

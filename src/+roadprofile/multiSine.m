@@ -33,18 +33,13 @@ if numel(options.Phase) ~= numel(freqs)
         'Phase must have the same length as freqs (got %d and %d)', ...
         numel(options.Phase), numel(freqs));
 end
-N = round(L / dx);
-if N < 2
-    error('roadprofile:invalidLength', ...
-        'Profile requires at least 2 samples, got %d', N);
-end
+[x, N] = roadprofile.internal.sampleGrid(L, dx, 2);
 fNyq = 1 / (2 * dx);
 if any(freqs >= fNyq)
     error('roadprofile:invalidFrequency', ...
         'Frequencies must be below Nyquist %g (dx = %g m), got max %g', ...
         fNyq, dx, max(freqs));
 end
-x = (0:N-1)' * dx;
 z = zeros(N, 1);
 for k = 1:numel(freqs)
     z = z + amps(k) * sin(2 * pi * freqs(k) * x + options.Phase(k));

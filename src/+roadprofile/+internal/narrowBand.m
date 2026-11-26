@@ -4,14 +4,10 @@ function p = narrowBand(L, dx, rmsHeight, wavelength, bw, seed, name)
 %
 %   Generates a Gaussian PSD centered at 1/wavelength with relative
 %   bandwidth BW (fraction of the center frequency). The profile is
-%   normalized so that its variance equals RMSHEIGHT^2. 
+%   normalized so that its variance equals RMSHEIGHT^2.
 %   The road must be at least wavelength/BW long.
 
-N = round(L / dx);
-if N < 4
-    error('roadprofile:invalidLength', ...
-        '%s requires at least 4 samples, got %d', name, N);
-end
+[x, N] = roadprofile.internal.sampleGrid(L, dx, 4);
 Leff = N * dx;
 dn = 1 / Leff;
 n0 = 1 / wavelength;
@@ -32,25 +28,12 @@ if ~isempty(seed)
     rng(seed, 'twister');
     cleanup = onCleanup(@() rng(previousState)); %#ok<NASGU>
 end
-if mod(N, 2) == 0
-    nPos = (1:(N/2 - 1))' * dn;
-    idxPos = (2:N/2)';
-else
-    nPos = (1:floor(N/2))' * dn;
-    idxPos = (2:floor(N/2)+1)';
-end
-envelope = exp(-0.5 * ((nPos - n0) / sigmaN).^2);
-C = rmsHeight^2 / (dn * sum(envelope));
-GPos = C * envelope;
-amp = sqrt(GPos * dn / 2);
-phi = 2 * pi * rand(size(amp));
-X = zeros(N, 1);
-X(idxPos) = amp .* exp(1i * phi);
-X(N - idxPos + 2) = conj(X(idxPos));
-z = real(ifft(X)) * N;
-z = z - mean(z);
+k = (1:ceil(N/2)-1)';
+envelope = exp(-0.5 * ((k*dn - n0) / sigmaN).^2);
+G = rmsHeight^2 / (dn * sum(envelope)) * envelope;
+z = roadprofile.internal.spectralSynthesis(N, k, sqrt(G * dn / 2));
 
-p.x = (0:N-1)' * dx;
+p.x = x;
 p.z = z;
 p.dx = dx;
 end

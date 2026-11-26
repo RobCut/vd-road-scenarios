@@ -15,18 +15,13 @@ arguments
     stopPos (1,1) {mustBeNumeric, mustBeFinite}
 end
 
-N = round(L / dx);
-if N < 2
-    error('roadprofile:invalidLength', ...
-        'Profile requires at least 2 samples, got %d', N);
-end
+[x, N] = roadprofile.internal.sampleGrid(L, dx, 2);
 Leff = N * dx;
 if startPos < 0 || stopPos > Leff + 1e-9*dx || startPos >= stopPos
     error('roadprofile:invalidPosition', ...
         'edge window [%g, %g) invalid for road [0, %g]', ...
         startPos, stopPos, Leff);
 end
-x = (0:N-1)' * dx;
 inside = x >= startPos & x < stopPos;
 if ~any(inside)
     error('roadprofile:invalidPosition', ...

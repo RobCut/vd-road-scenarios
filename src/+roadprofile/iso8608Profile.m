@@ -33,37 +33,19 @@ if ~isempty(options.Seed)
     rng(options.Seed, 'twister');
     cleanup = onCleanup(@() rng(previousState)); %#ok<NASGU>
 end
-N = round(L / dx);
-if N < 4
-    error('roadprofile:invalidLength', ...
-        'Profile requires at least 4 samples, got %d', N);
-end
+[x, N] = roadprofile.internal.sampleGrid(L, dx, 4);
 Leff = N * dx;
-x = (0:N-1)' * dx;
 dn = 1 / Leff;
-if mod(N,2) == 0
-    n_pos = (1:(N/2 - 1))' * dn;
-    idx_pos = (2:N/2)';
-else
-    n_pos = (1:floor(N/2))' * dn;
-    idx_pos = (2:floor(N/2)+1)';
-end
-inBand = n_pos >= options.NMin & n_pos <= options.NMax;
+k = (1:ceil(N/2)-1)';      % excludes DC and Nyquist
+n = k * dn;
+inBand = n >= options.NMin & n <= options.NMax;
 if ~any(inBand)
     error('roadprofile:emptyBand', ...
         'No spectral line in [%g, %g] cycles/m (resolution %g)', ...
         options.NMin, options.NMax, dn);
 end
-n_pos = n_pos(inBand);
-idx_pos = idx_pos(inBand);
-G_pos = roadprofile.iso8608PSD(roadClass, n_pos);
-amp = sqrt(G_pos * dn / 2);
-phi = 2 * pi * rand(size(amp));
-X = zeros(N, 1);
-X(idx_pos) = amp .* exp(1i * phi);
-X(N - idx_pos + 2) = conj(X(idx_pos));
-z = real(ifft(X)) * N;
-z = z - mean(z);
+G = roadprofile.iso8608PSD(roadClass, n(inBand));
+z = roadprofile.internal.spectralSynthesis(N, k(inBand), sqrt(G * dn / 2));
 p.x = x;
 p.z = z;
 p.dx = dx;

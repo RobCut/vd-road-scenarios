@@ -14,7 +14,7 @@ function p = belgianBlock(L, dx, rmsHeight, wavelength, options)
 arguments
     L (1,1) {mustBeNumeric, mustBeFinite, mustBePositive}
     dx (1,1) {mustBeNumeric, mustBeFinite, mustBePositive}
-    rmsHeight (1,1) {mustBeNumeric, mustBeFinite, mustBePositive}
+    rmsHeight (1,1) {mustBeNumeric, mustBeFinite, mustBeNonnegative}
     wavelength (1,1) {mustBeNumeric, mustBeFinite, mustBePositive}
     options.Seed {mustBeNumeric, mustBeInteger, mustBeNonnegative, mustBeScalarOrEmpty} = []
 end

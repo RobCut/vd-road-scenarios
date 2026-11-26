@@ -20,12 +20,7 @@ arguments
     options.Width (1,1) {mustBeNumeric, mustBeFinite, mustBeNonnegative} = 0
 end
 
-N = round(L / dx);
-if N < 2
-    error('roadprofile:invalidLength', ...
-        'Profile requires at least 2 samples, got %d', N);
-end
-x = (0:N-1)' * dx;
+[x, N] = roadprofile.internal.sampleGrid(L, dx, 2);
 if options.Width == 0
     z = height * (x >= position);
 else

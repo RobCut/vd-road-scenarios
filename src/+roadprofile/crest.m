@@ -3,23 +3,20 @@ function p = crest(L, dx, height, width, position)
 %   P = CREST(L, DX, H, W, X0) returns a triangular peak that is 0 outside
 %   [X0, X0+W], rises linearly to H at X0 + W/2, and descends
 %   symmetrically. Unlike bump, the slope is discontinuous at the peak.
+%   H must be non-negative (use valley for depressions); W >= 4*DX.
 %
 %   See also roadprofile.valley, roadprofile.bump.
 
 arguments
     L (1,1) {mustBeNumeric, mustBeFinite, mustBePositive}
     dx (1,1) {mustBeNumeric, mustBeFinite, mustBePositive}
-    height (1,1) {mustBeNumeric, mustBeFinite}
+    height (1,1) {mustBeNumeric, mustBeFinite, mustBeNonnegative}
     width (1,1) {mustBeNumeric, mustBeFinite, mustBePositive}
     position (1,1) {mustBeNumeric, mustBeFinite}
 end
 
-N = round(L / dx);
-if N < 2
-    error('roadprofile:invalidLength', ...
-        'Profile requires at least 2 samples, got %d', N);
-end
-if width < 2 * dx
+[x, N] = roadprofile.internal.sampleGrid(L, dx, 2);
+if width < 4 * dx
     error('roadprofile:invalidWidth', ...
         'Crest width %g m is less than 2*dx = %g m', width, 2*dx);
 end
@@ -29,7 +26,6 @@ if position + width <= 0 || position >= xEnd
         'Crest window [%g, %g] does not overlap road [0, %g]', ...
         position, position + width, xEnd);
 end
-x = (0:N-1)' * dx;
 z = zeros(N, 1);
 inWindow = x > position & x < position + width;
 xi = x(inWindow);

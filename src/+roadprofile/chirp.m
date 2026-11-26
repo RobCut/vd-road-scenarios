@@ -28,18 +28,13 @@ arguments
     options.Phase (1,1) {mustBeNumeric, mustBeFinite} = 0
 end
 
-N = round(L / dx);
-if N < 2
-    error('roadprofile:invalidLength', ...
-        'Profile requires at least 2 samples, got %d', N);
-end
+[x, N] = roadprofile.internal.sampleGrid(L, dx, 2);
 fNyq = 1 / (2 * dx);
 if max(f0, f1) >= fNyq
     error('roadprofile:invalidFrequency', ...
         'Chirp frequencies [%g, %g] must be below Nyquist %g (dx = %g m)', ...
         f0, f1, fNyq, dx);
 end
-x = (0:N-1)' * dx;
 phaseCycles = f0 * x + (f1 - f0) * x.^2 / (2 * L);
 z = amplitude * sin(2 * pi * phaseCycles + options.Phase);
 

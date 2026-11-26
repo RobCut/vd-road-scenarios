@@ -42,9 +42,17 @@ classdef TestCrest < matlab.unittest.TestCase
 
         function test_crest_negative_height(testCase)
             %test_crest_negative_height Verify that negative height is
-            %   accepted (use valley for semantics, but math works).
-            p = roadprofile.crest(100, 0.01, -0.05, 0.6, 10);
-            testCase.verifyLessThan(min(p.z), 0);
+            %   rejected (use valley for depressions).
+            testCase.verifyError( ...
+                @() roadprofile.crest(100, 0.01, -0.05, 0.6, 10), ...
+                'MATLAB:validators:mustBeNonnegative');
+        end
+
+        function test_crest_width_too_small(testCase)
+            %test_crest_width_too_small Verify that width < 4*dx is rejected.
+            testCase.verifyError( ...
+                @() roadprofile.crest(100, 0.05, 0.05, 0.15, 10), ...
+                'roadprofile:invalidWidth');
         end
     end
 end
