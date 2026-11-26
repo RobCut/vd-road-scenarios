@@ -3,7 +3,7 @@ function p = compose(L, dx, segments, options)
 %   P = COMPOSE(L, DX, SEGMENTS) returns a struct P with fields x, z, dx,
 %   segments, containing a composite road profile of length L (m) sampled
 %   at DX (m). Each element of SEGMENTS defines a pattern placed on the
-%   interval [Start, Stop], with T%   interval [Start, Stop]. Type is one of "iso8608", "sine", "washboard",
+%   interval [Start, Stop], with T interval [Start, Stop]. Type is one of "iso8608", "sine", "washboard",
 %   "chirp", "multiSine", "belgianBlock", "cobblestone", "bump",
 %   "pothole", "crest", "valley", "edge", "step", "kink", "flat". Params
 %   is a cell of arguments passed to the pattern after (L, dx).
