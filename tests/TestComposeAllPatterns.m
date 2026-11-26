@@ -23,8 +23,7 @@ classdef TestComposeAllPatterns < matlab.unittest.TestCase
 
     methods (Test)
         function test_compose_dispatches(testCase, Segment)
-            %test_compose_dispatches Verify that compose can dispatch
-            %   to every catalog pattern without error.
+            %test_compose_dispatches Verify that matches the direct call.
             L = 10; dx = 0.01;
             segs = struct( ...
                 'Start', 2, ...
@@ -32,8 +31,16 @@ classdef TestComposeAllPatterns < matlab.unittest.TestCase
                 'Type', Segment.Type, ...
                 'Params', {Segment.Params});
             p = roadprofile.compose(L, dx, segs, Seed=42);
-            testCase.verifyEqual(numel(p.z), round(L/dx));
-            testCase.verifyTrue(all(isfinite(p.z)));
+            name = Segment.Type;
+            if name == "iso8608", name = "iso8608Profile"; end
+            args = Segment.Params;
+            if isfield(p.segments, 'SeedUsed')
+                args = [args, {'Seed', p.segments.SeedUsed}];
+            end
+            ref = feval("roadprofile." + name, 6, dx, args{:});
+            expected = zeros(round(L/dx), 1);
+            expected(201:800) = ref.z;          % samples of [2, 8) m
+            testCase.verifyEqual(p.z, expected, 'AbsTol', 1e-12);
         end
     end
 end

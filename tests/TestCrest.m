@@ -36,7 +36,8 @@ classdef TestCrest < matlab.unittest.TestCase
             idx = find(abs(p.x - xMid) < 1e-10, 1);
             slopeBefore = (p.z(idx) - p.z(idx-1)) / p.dx;
             slopeAfter  = (p.z(idx+1) - p.z(idx)) / p.dx;
-            testCase.verifyGreaterThan(abs(slopeBefore - slopeAfter), 1e-6);
+            testCase.verifyEqual(slopeBefore,  2*H/w, 'AbsTol', 1e-10);
+            testCase.verifyEqual(slopeAfter,  -2*H/w, 'AbsTol', 1e-10);
         end
 
         function test_crest_negative_height(testCase)

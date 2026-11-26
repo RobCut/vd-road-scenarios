@@ -56,6 +56,9 @@ classdef TestStep < matlab.unittest.TestCase
             p = roadprofile.step(100, 0.01, H, pos, Width=w);
             maxJump = max(abs(diff(p.z)));
             testCase.verifyLessThan(maxJump, H/2);
+            testCase.verifyEqual(p.z(find(p.x >= pos, 1)), H/2, 'AbsTol', 1e-12);
+            testCase.verifyGreaterThanOrEqual(min(diff(p.z)), 0);
+            testCase.verifyEqual(p.z([1 end]), [0; H], 'AbsTol', 1e-12);
         end
 
         function test_step_length_inf(testCase)

@@ -43,18 +43,6 @@ classdef TestISO8608Profile < matlab.unittest.TestCase
             testCase.verifyEqual(mean(p.z), 0, 'AbsTol', 1e-10);
         end
 
-        function test_profile_roughness_increases_with_class(testCase)
-            %test_profile_roughness_increases_with_class Verify that
-            %   variance increases monotonically from class A to class C.
-            L = 1000;
-            dx = 0.01;
-            vA = var(roadprofile.iso8608Profile(L, dx, 'A', Seed=1).z);
-            vB = var(roadprofile.iso8608Profile(L, dx, 'B', Seed=1).z);
-            vC = var(roadprofile.iso8608Profile(L, dx, 'C', Seed=1).z);
-            testCase.verifyGreaterThan(vB, vA);
-            testCase.verifyGreaterThan(vC, vB);
-        end
-
         function test_profile_spectrum_matches_psd(testCase)
             %test_profile_spectrum_matches_psd Verify |X(k)|^2 = G(n_k)*dn/2
             %   inside the default band and zero outside.

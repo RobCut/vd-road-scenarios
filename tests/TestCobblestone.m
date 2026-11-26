@@ -39,5 +39,21 @@ classdef TestCobblestone < matlab.unittest.TestCase
             p = roadprofile.cobblestone(10, 0.005, 0.02, 0.1, Seed=1);
             testCase.verifyEqual(sqrt(mean(p.z.^2)), 0.02, 'RelTol', 1e-12);
         end
+
+        function test_cobble_different_seed(testCase)
+            %test_cobble_different_seed Verify that different seeds produce
+            %   different output.
+            p1 = roadprofile.cobblestone(10, 0.005, 0.02, 0.1, Seed=42);
+            p2 = roadprofile.cobblestone(10, 0.005, 0.02, 0.1, Seed=43);
+            testCase.verifyNotEqual(p1.z, p2.z);
+        end
+
+        function test_cobble_nyquist_violation(testCase)
+            %test_cobble_nyquist_violation Verify that a spectrum beyond
+            %   Nyquist raises roadprofile:invalidFrequency.
+            testCase.verifyError( ...
+                @() roadprofile.cobblestone(10, 0.05, 0.02, 0.1), ...
+                'roadprofile:invalidFrequency');
+        end
     end
 end
