@@ -28,7 +28,7 @@ classdef TestMultiSine < matlab.unittest.TestCase
             fs = (0:N-1)' / (N * dx);
             for k = 1:numel(freqs)
                 [~, idx] = min(abs(fs - freqs(k)));
-                testCase.verifyEqual(Z(idx), amps(k), 'RelTol', 0.10);
+                testCase.verifyEqual(Z(idx), amps(k), 'RelTol', 1e-9);
             end
         end
 
@@ -46,6 +46,13 @@ classdef TestMultiSine < matlab.unittest.TestCase
             testCase.verifyError( ...
                 @() roadprofile.multiSine(100, 0.05, [1, 20], [0.01, 0.01]), ...
                 'roadprofile:invalidFrequency');
+        end
+
+        function test_multisine_phase_nan(testCase)
+            %test_multisine_phase_nan Verify that a NaN phase is rejected.
+            testCase.verifyError( ...
+                @() roadprofile.multiSine(100, 0.01, 1, 0.01, Phase=NaN), ...
+                'MATLAB:validators:mustBeFinite');
         end
     end
 end

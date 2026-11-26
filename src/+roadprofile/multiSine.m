@@ -20,7 +20,7 @@ arguments
     dx (1,1) {mustBeNumeric, mustBeFinite, mustBePositive}
     freqs (1,:) {mustBeNumeric, mustBeFinite, mustBePositive}
     amps (1,:) {mustBeNumeric, mustBeFinite, mustBeNonnegative}
-    options.Phase double = zeros(size(freqs))
+    options.Phase double {mustBeFinite} = zeros(size(freqs))
 end
 
 if numel(freqs) ~= numel(amps)
