@@ -11,7 +11,7 @@ by default 0.011–2.83 cycles/m, always below Nyquist. DC is excluded.
 The PSD is single-sided. Each bin carries variance `G*Δn`, corresponding
 to a cosine of amplitude `A = √(2·G·Δn)`. With the Hermitian pair and
 `z = real(ifft(X))·N`, the relation is `|X| = √(G·Δn/2)`. The variance of
-the generated profile is `var(z) ≈ Σ G·Δn`.
+the generated profile is `mean(z.^2) = Σ G·Δn`.
 
 ## 3. Generation method
 
@@ -28,19 +28,17 @@ uniform distribution in `[0, 2π)`. Consequences:
   -0.05 (L = 1000 m), as the first line carries 61%, 39% and 9% of the
   variance. Use long profiles if Gaussianity matters.
 
-The `psd_comparison.png` figure in `results/` shows theory against a
-multi-realization average; it illustrates the spectrum but is not a
-statistical validation. A Welch-based estimate on a long profile is a
-possible future addition (project 16/19).
+`examples/psd_comparison.m` checks the spectrum independently of the
+generator's frequency grid, with a Welch estimate (Hann window, 50%
+overlap) on a 10 km profile.
 
 ## 4. Length and spacing
 
 `N = round(L/dx)`. The effective length is `Leff = N*dx`, which may
 differ from the requested `L`. The spectral resolution is `Δn = 1/Leff`.
-If `N < 4` the generator raises `roadprofile:invalidLength`, because
-the positive-frequency set would be empty or incoherent.
-For `sine` and event-based patterns, the minimum is `N >= 2`: there is no
-positive-frequency set to fill, so the `N < 4` threshold does not apply.
+Spectral generators need `N >= 4`, other patterns `N >= 2`
+(`roadprofile:invalidLength`). Narrow-band surfaces also need a road at
+least `wavelength/bw` long.
 
 ## 5. Seed handling
 
@@ -58,9 +56,7 @@ Every pattern in `+roadprofile/` returns a struct with fields:
 - `dx` — spatial resolution (m)
 
 The effective length is `Leff = N*dx`, where `N = round(L/dx)`, and
-`x(end) = (N-1)*dx`. This convention is shared by `iso8608Profile`,
-`sine`, and all future patterns (`step`, `bump`, `pothole`,
-`speedBump`, `compose`, ...).
+`x(end) = (N-1)*dx`. This convention is shared by all patterns, including compose.
 
 Function signatures follow the pattern `pattern(L, dx, <parameters>,
 Name=Value...)`, with `L` and `dx` first because they define the
@@ -68,30 +64,18 @@ domain. Parameters that are common to many patterns use name-value
 arguments with sensible defaults (e.g. `Phase=0`).
 
 ## 7. Frequency vs wavelength
-
-Patterns that describe a periodic structure accept frequency in
-cycles/m, not wavelength in metres. This is consistent with the ISO
-8608 convention (spatial frequency `n`) and makes the Nyquist check
-trivial: `freq < 1/(2*dx)`. Users who think in wavelengths can compute
-`freq = 1/lambda`. A future helper `roadprofile.wavelengthToFrequency`
-is planned but not yet implemented.
+`sine`, `chirp` and `multiSine` take spatial frequency (cycles/m), as in
+ISO 8608. `washboard`, `belgianBlock` and `cobblestone` take wavelength
+(m), the natural description of a paved surface.
 
 ## 8. Nyquist and aliasing
-
-Patterns with a dominant frequency (currently `sine`, future `chirp`
-and `multiSine`) raise `roadprofile:invalidFrequency` if the requested
-frequency is greater than or equal to the Nyquist frequency
-`1/(2*dx)`. This prevents silent aliasing, which would produce a
-profile at a lower apparent frequency than requested.
+`sine`, `chirp`, `multiSine` (and `washboard`, through `sine`) reject
+frequencies at or above `1/(2*dx)`. Narrow-band surfaces require
+`n0 + 3*sigma <= 1/(2*dx)`. Both raise `roadprofile:invalidFrequency`.
 
 ## 9. Mean behavior
-
-`iso8608Profile` removes the mean from the generated profile, so the
-resulting road height is always mean-zero. This is appropriate for a
-stationary stochastic process. Deterministic patterns (`sine`, and the
-future `bump`, `pothole`, `step`) do not remove the mean: their mean
-depends on the number of full periods inside the profile, and forcing
-zero would distort the physical meaning of the signal.
+Spectral generators (`iso8608Profile`, `belgianBlock`, `cobblestone`)
+are mean-zero. Deterministic patterns keep their natural mean.
 
 ## 10. Bump pattern
 
@@ -212,7 +196,7 @@ precedence, so `compose(L, dx, p.segments)` replays the composition.
 `Seed` inside `Params` is rejected.
 
 **Independent realizations.** Each `iso8608` segment is an independent
-realization: it has no content below `1/Lseg`, and it is mean-zero on
+realization: it has no content below `max(NMin, 1/Lseg)`, and it is mean-zero on
 its own domain. Two 100 m B segments are therefore *not* equivalent to
 one 200 m B profile: the low-frequency content differs, and the mean
 of each segment is removed separately before being composed.
@@ -241,8 +225,7 @@ call.
 stochastic segment, whether or not a global `Seed` is given. The
 derived seed is stored in `p.segments(k).SeedUsed`, so each segment can
 be regenerated individually with
-`pattern(Lseg, dx, ..., Seed=SeedUsed)`. To replay the whole
-composition, save the `SeedUsed` values or pass a global `Seed`.
+`pattern(Lseg, dx, ..., Seed=SeedUsed)`. To replay a composition, pass `p.segments` back or use the same global `Seed`.
 
 **Determinism of the generator.** `rng(Seed, 'twister')` pins the
 algorithm, so a given seed produces the same profile regardless of
@@ -255,8 +238,17 @@ is no auto-derivation at the pattern level: `compose` is the only
 function that derives seeds automatically, and it does so for all
 stochastic segments it receives.
 
-**Anti-aliasing.** The profiles are sampled at `dx`; features smaller
-than `2*dx` cannot be represented and are not band-limited. Rendering
+**Anti-aliasing.** Event patterns are sampled at `dx` without any anti-aliasing filter. Rendering
 a long profile at page width compresses many samples into few pixels
 and may look blocky. For readable figures, use `dx` comparable to
 the smallest feature you want to show, or plot a zoom.
+
+## 15. Other patterns
+- `chirp`: linear frequency sweep from f0 at x = 0 to f1 at x = L.
+- `multiSine`: sum of sinusoids with independent amplitudes and phases.
+- `belgianBlock`, `cobblestone`: Gaussian PSD, relative bandwidth 0.30 and
+  0.15; the input is the RMS height.
+- `crest`, `valley`: triangular, non-negative height, width >= 4*dx.
+- `edge`: plateau on [S, E), 0 <= S < E <= N*dx.
+- `step`: sharp, or a logistic transition when Width > 0.
+- `kink`: slope change at a non-negative position, z(0) = 0.
