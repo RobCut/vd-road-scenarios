@@ -42,5 +42,13 @@ classdef TestKink < matlab.unittest.TestCase
             p = roadprofile.kink(100, 0.05, 50, 0.01, -0.01);
             testCase.verifyEqual(p.z(1), 0, 'AbsTol', 1e-12);
         end
+
+        function test_kink_negative_position(testCase)
+            %test_kink_negative_position Verify that a negative position is
+            %   rejected, so that z(0) = 0 always holds.
+            testCase.verifyError( ...
+                @() roadprofile.kink(100, 0.05, -1, 0.01, -0.01), ...
+                'MATLAB:validators:mustBeNonnegative');
+        end
     end
 end

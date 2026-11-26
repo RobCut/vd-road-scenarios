@@ -9,7 +9,7 @@ function p = kink(L, dx, position, slopeBefore, slopeAfter)
 arguments
     L (1,1) {mustBeNumeric, mustBeFinite, mustBePositive}
     dx (1,1) {mustBeNumeric, mustBeFinite, mustBePositive}
-    position (1,1) {mustBeNumeric, mustBeFinite}
+    position (1,1) {mustBeNumeric, mustBeFinite, mustBeNonnegative}
     slopeBefore (1,1) {mustBeNumeric, mustBeFinite}
     slopeAfter (1,1) {mustBeNumeric, mustBeFinite}
 end
