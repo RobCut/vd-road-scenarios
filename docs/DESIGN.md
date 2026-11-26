@@ -2,12 +2,9 @@
 
 ## 1. Frequency band
 
-The PSD is defined for spatial frequencies `n = 1/Leff ... 1/(2*dx)`, where
-`Leff = N*dx` is the effective profile length. The DC component (n = 0) is
-excluded, as the generated profile is always mean-zero. The ISO 8608 band
-(0.011–2.83 cycles/m) is not applied as a hard cut: the generator produces
-the full spectrum up to Nyquist, and band-limiting is left to the
-`filterProfile` utility (planned, not yet implemented).
+`iso8608Profile` synthesises the lines n = k/Leff inside [NMin, NMax],
+by default 0.011–2.83 cycles/m, always below Nyquist. DC is excluded.
+`NMin=0, NMax=Inf` gives the full spectrum.
 
 ## 2. Amplitude scaling
 
@@ -25,13 +22,11 @@ uniform distribution in `[0, 2π)`. Consequences:
   exactly by construction.
 - Profiles of different classes with the same seed are exact scaled
   copies (factor 2 per class), because only the amplitudes change.
-- The generated profile is a sum of many independent sinusoids with
-  fixed amplitudes and uniform random phases. The distribution of the
-  *process over many realizations* approaches Gaussian, but a single
-  realization is dominated by its longest-wavelength components: the
-  first harmonic carries approximately 61% of the variance. "Gaussian"
-  should therefore be read as an ensemble statement, not as a
-  property of one sample profile.
+- A single point of the ensemble is not exactly Gaussian: the excess
+  kurtosis is -1.5·Σσk⁴/(Σσk²)², with σk² the variance of line k. With
+  the default band it is about -0.60 (L = 80 m), -0.30 (L = 100 m) and
+  -0.05 (L = 1000 m), as the first line carries 61%, 39% and 9% of the
+  variance. Use long profiles if Gaussianity matters.
 
 The `psd_comparison.png` figure in `results/` shows theory against a
 multi-realization average; it illustrates the spectrum but is not a

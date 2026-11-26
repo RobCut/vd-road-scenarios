@@ -56,26 +56,14 @@ classdef TestISO8608Profile < matlab.unittest.TestCase
         end
 
         function test_profile_spectrum_matches_psd(testCase)
-            %test_profile_spectrum_matches_psd Verify that |X(k)|^2 equals
-            %   G(n_k) * dn / 2 (Hermitian pair), where X = fft(z)/N.
-            L = 100;
-            dx = 0.05;
-            p = roadprofile.iso8608Profile(L, dx, 'B', Seed=42);
-            N = numel(p.z);
-            Leff = N * dx;
-            Z = fft(p.z);
-            k = (1:floor(N/2)-1)';
-            n = k / Leff;
-            G_theory = roadprofile.iso8608PSD('B', n);
-            X_amp_sq = abs(Z(k+1)).^2 / N^2;
-            target = G_theory * (1/Leff) / 2;
-            relErr = abs(X_amp_sq - target) ./ target;
-            testCase.verifyLessThan(max(relErr), 1e-8);
+            %test_profile_spectrum_matches_psd Verify |X(k)|^2 = G(n_k)*dn/2
+            %   inside the default band and zero outside.
+            testCase.checkSpectrum(100, 0.05);
         end
 
         function test_profile_variance(testCase)
             %test_profile_variance Verify that the sample variance equals
-            %   sum(G(k) * dn) within statistical tolerance.
+            %   sum(G(k) * dn) over the default band (exact by Parseval).
             L = 1000;
             dx = 0.01;
             p = roadprofile.iso8608Profile(L, dx, 'B', Seed=1);
@@ -83,9 +71,10 @@ classdef TestISO8608Profile < matlab.unittest.TestCase
             Leff = N * dx;
             k = (1:floor(N/2)-1)';
             n = k / Leff;
+            n = n(n >= 0.011 & n <= 2.83);
             G_theory = roadprofile.iso8608PSD('B', n);
             var_theory = sum(G_theory) / Leff * N / (N - 1);
-            testCase.verifyEqual(var(p.z), var_theory, 'RelTol', 1e-4);
+            testCase.verifyEqual(var(p.z), var_theory, 'RelTol', 1e-10);
         end
 
         function test_profile_class_ratio(testCase)
@@ -119,21 +108,9 @@ classdef TestISO8608Profile < matlab.unittest.TestCase
         end
 
         function test_profile_non_integer_length(testCase)
-            %test_profile_non_integer_length Verify that the spectrum
-            %   is correct when L/dx is not an integer (Leff = N*dx).
-            L = 100;
-            dx = 0.03;
-            p = roadprofile.iso8608Profile(L, dx, 'B', Seed=42);
-            N = numel(p.z);
-            Leff = N * dx;
-            Z = fft(p.z);
-            k = (1:floor(N/2)-1)';
-            n = k / Leff;
-            G_theory = roadprofile.iso8608PSD('B', n);
-            X_amp_sq = abs(Z(k+1)).^2 / N^2;
-            target = G_theory * (1/Leff) / 2;
-            relErr = abs(X_amp_sq - target) ./ target;
-            testCase.verifyLessThan(max(relErr), 1e-8);
+            %test_profile_non_integer_length Same spectral check when L/dx is
+            %   not an integer (Leff = N*dx).
+            testCase.checkSpectrum(100, 0.03);
         end
 
         function test_profile_length_inf(testCase)
@@ -174,6 +151,29 @@ classdef TestISO8608Profile < matlab.unittest.TestCase
             testCase.verifyError( ...
                 @() roadprofile.iso8608Profile(100, 0.05, 'B', Seed=1.5), ...
                 'MATLAB:validators:mustBeInteger');
+        end
+
+        function test_profile_empty_band(testCase)
+            %test_profile_empty_band Verify that a band with no spectral line
+            %   raises roadprofile:emptyBand.
+            testCase.verifyError( ...
+                @() roadprofile.iso8608Profile(100, 0.05, 'B', NMin=20, NMax=30), ...
+                'roadprofile:emptyBand');
+        end
+    end
+
+    methods
+        function checkSpectrum(testCase, L, dx)
+            %checkSpectrum Compare the periodogram of a class B profile with
+            %   the PSD in the default band.
+            p = roadprofile.iso8608Profile(L, dx, 'B', Seed=42);
+            N = numel(p.z);  Leff = N*dx;
+            k = (1:floor(N/2)-1)';  n = k/Leff;
+            P = abs(fft(p.z)/N).^2;  P = P(k+1);
+            in = n >= 0.011 & n <= 2.83;
+            target = roadprofile.iso8608PSD('B', n(in))/Leff/2;
+            testCase.verifyEqual(P(in), target, 'RelTol', 1e-8);
+            testCase.verifyLessThan(max(P(~in)), 1e-20);
         end
     end
 end
