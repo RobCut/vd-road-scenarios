@@ -29,7 +29,7 @@ classdef TestCompose < matlab.unittest.TestCase
             %   contiguous sine segments produce a profile that matches
             %   the piecewise concatenation of two direct calls, with
             %   no gaps and no overlaps at the boundary.
-            L = 100; dx = 0.05; f = 0.2; A = 0.01;
+            L = 100; dx = 0.05; f = 0.13; A = 0.01;
             segs = [ ...
                 struct('Start', 0,   'Stop', 50, 'Type', "sine", 'Params', {{f, A}}), ...
                 struct('Start', 50,  'Stop', 100, 'Type', "sine", 'Params', {{f, A}}) ...
@@ -165,7 +165,7 @@ classdef TestCompose < matlab.unittest.TestCase
             end
         end
 
-                function test_compose_non_integer_boundaries(testCase)
+        function test_compose_non_integer_boundaries(testCase)
             %test_compose_non_integer_boundaries Verify that Start and Stop
             %   not aligned to the grid snap to nearest sample without
             %   dimension errors.
@@ -300,6 +300,27 @@ classdef TestCompose < matlab.unittest.TestCase
             derivedSeed = p1.segments(1).SeedUsed;
             pDirect = roadprofile.belgianBlock(L, dx, 0.03, 0.2, Seed=derivedSeed);
             testCase.verifyEqual(p1.z, pDirect.z, 'AbsTol', 1e-12);
+        end
+
+        function test_compose_replay_from_segments(testCase)
+            %test_compose_replay_from_segments Verify that feeding p.segments
+            %   back reproduces the profile without a global seed.
+            segs = [ ...
+                struct('Start', 0,  'Stop', 50,  'Type', "iso8608",     'Params', {{'B'}}), ...
+                struct('Start', 50, 'Stop', 100, 'Type', "cobblestone", 'Params', {{0.02, 0.1}})];
+            p1 = roadprofile.compose(100, 0.01, segs);
+            p2 = roadprofile.compose(100, 0.01, p1.segments);
+            testCase.verifyEqual(p2.z, p1.z, 'AbsTol', 1e-12);
+        end
+
+        function test_compose_seed_in_params(testCase)
+            %test_compose_seed_in_params Verify that Seed inside Params is
+            %   rejected instead of being silently overridden.
+            segs = struct('Start', 0, 'Stop', 100, 'Type', "iso8608", ...
+                'Params', {{'B', 'Seed', 5}});
+            testCase.verifyError( ...
+                @() roadprofile.compose(100, 0.05, segs), ...
+                'roadprofile:invalidSegment');
         end
     end
 end

@@ -3,16 +3,17 @@ function p = compose(L, dx, segments, options)
 %   P = COMPOSE(L, DX, SEGMENTS) returns a struct P with fields x, z, dx,
 %   segments, containing a composite road profile of length L (m) sampled
 %   at DX (m). Each element of SEGMENTS defines a pattern placed on the
-%   interval [Start, Stop], with Type among "iso8608", "sine", "bump",
-%   "pothole", "flat", and Params a cell of positional arguments passed to
-%   the pattern after (L, dx).
+%   interval [Start, Stop], with T%   interval [Start, Stop]. Type is one of "iso8608", "sine", "washboard",
+%   "chirp", "multiSine", "belgianBlock", "cobblestone", "bump",
+%   "pothole", "crest", "valley", "edge", "step", "kink", "flat". Params
+%   is a cell of arguments passed to the pattern after (L, dx).
 %
 %   P = COMPOSE(..., RemoveMean=true) subtracts the mean from the composed
 %   profile.
 %
-%   P = COMPOSE(..., Seed=S) uses the integer S to derive a distinct random
-%   seed for every "iso8608" segment. The derived seed is stored in
-%   P.segments(k).SeedUsed for reproducibility.
+%   P = COMPOSE(..., Seed=S) derives a seed for every stochastic segment.
+%   It is stored in P.segments(k).SeedUsed. A non-empty SeedUsed in the
+%   input takes precedence, so compose(L, dx, P.segments) replays P.
 %
 %   Segment boundaries are snapped to the nearest sample:
 %       i0 = round(Start / DX), i1 = round(Stop / DX)
@@ -85,31 +86,25 @@ for k = 1:numel(segments)
     Lseg = (i1 - i0) * dx;
     try
         switch string(seg.Type)
-            case 'iso8608'
-                if ~isempty(options.Seed)
-                    derivedSeed = randi(stream, [1, 2^31 - 1]);
-                else
-                    derivedSeed = randi([1, 2^31 - 1]);
+            case {'iso8608', 'cobblestone', 'belgianBlock'}
+                if any(cellfun(@(c) any(strcmpi(c, "Seed")), seg.Params))
+                    error('roadprofile:invalidSegment', ...
+                        'Use compose(..., Seed=S) or SeedUsed, not Seed in Params');
                 end
-                segZ = roadprofile.iso8608Profile(Lseg, dx, seg.Params{:}, Seed=derivedSeed);
-                segmentsOut(k).SeedUsed = derivedSeed;
-
-            case 'cobblestone'
-                if ~isempty(options.Seed)
-                    derivedSeed = randi(stream, [1, 2^31 - 1]);
-                else
+                if isempty(options.Seed)
                     derivedSeed = randi([1, 2^31 - 1]);
-                end
-                segZ = roadprofile.cobblestone(Lseg, dx, seg.Params{:}, Seed=derivedSeed);
-                segmentsOut(k).SeedUsed = derivedSeed;
-
-            case 'belgianBlock'
-                if ~isempty(options.Seed)
-                    derivedSeed = randi(stream, [1, 2^31 - 1]);
                 else
-                    derivedSeed = randi([1, 2^31 - 1]);
+                    derivedSeed = randi(stream, [1, 2^31 - 1]);
                 end
-                segZ = roadprofile.belgianBlock(Lseg, dx, seg.Params{:}, Seed=derivedSeed);
+                if isfield(seg, 'SeedUsed') && ~isempty(seg.SeedUsed)
+                    derivedSeed = seg.SeedUsed;   % replay
+                end
+                name = string(seg.Type);
+                if name == "iso8608"
+                    name = "iso8608Profile";
+                end
+                segZ = feval("roadprofile." + name, Lseg, dx, ...
+                    seg.Params{:}, "Seed", derivedSeed);
                 segmentsOut(k).SeedUsed = derivedSeed;
 
             case 'multiSine'

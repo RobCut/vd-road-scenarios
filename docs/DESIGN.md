@@ -188,7 +188,7 @@ multiples of `dx`.
 and for `Start` and `Stop` being finite numeric scalars. A segment
 with `i0 < 0`, `i1 > N`, or `i0 >= i1` raises
 `roadprofile:invalidSegment`. A `Type` not in the allowed set
-(`iso8608`, `sine`, `bump`, `pothole`, `flat`) raises
+(see the list in the compose help) raises
 `roadprofile:unknownPattern`. Pattern-level errors (for example
 `invalidWidth` from a bump whose segment is too short) are wrapped as
 `roadprofile:invalidSegment` with the segment index in the message
@@ -204,14 +204,12 @@ and `pothole` is therefore relative to the start of the segment, not to
 the global `x`. A bump with `Start = 50, position = 0` peaks at
 `x = 50 + W/2`.
 
-**Seed derivation.** Every `iso8608` segment receives a derived seed,
-whether or not a global `Seed` is provided. With a global seed, the
-derived seeds come from a `RandStream` initialized with that seed, so
-the whole composition is deterministic. Without a global seed, the
-derived seeds come from the global random stream (different at every
-run), but they are recorded in `p.segments(k).SeedUsed`, so each
-segment can still be reproduced individually. To replay the whole
-composition, save the `SeedUsed` values or pass a global `Seed`.
+**Seed derivation.** Every stochastic segment (`iso8608`, `belgianBlock`,
+`cobblestone`) gets a seed, drawn from a `RandStream` initialised with the
+global `Seed`, or from the global stream if none is given. It is stored in
+`p.segments(k).SeedUsed`. A non-empty `SeedUsed` in the input takes
+precedence, so `compose(L, dx, p.segments)` replays the composition.
+`Seed` inside `Params` is rejected.
 
 **Independent realizations.** Each `iso8608` segment is an independent
 realization: it has no content below `1/Lseg`, and it is mean-zero on
