@@ -93,14 +93,61 @@ for k = 1:numel(segments)
                 end
                 segZ = roadprofile.iso8608Profile(Lseg, dx, seg.Params{:}, Seed=derivedSeed);
                 segmentsOut(k).SeedUsed = derivedSeed;
+
+            case 'cobblestone'
+                if ~isempty(options.Seed)
+                    derivedSeed = randi(stream, [1, 2^31 - 1]);
+                else
+                    derivedSeed = randi([1, 2^31 - 1]);
+                end
+                segZ = roadprofile.cobblestone(Lseg, dx, seg.Params{:}, Seed=derivedSeed);
+                segmentsOut(k).SeedUsed = derivedSeed;
+
+            case 'belgianBlock'
+                if ~isempty(options.Seed)
+                    derivedSeed = randi(stream, [1, 2^31 - 1]);
+                else
+                    derivedSeed = randi([1, 2^31 - 1]);
+                end
+                segZ = roadprofile.belgianBlock(Lseg, dx, seg.Params{:}, Seed=derivedSeed);
+                segmentsOut(k).SeedUsed = derivedSeed;
+
+            case 'multiSine'
+                segZ = roadprofile.multiSine(Lseg, dx, seg.Params{:});
+
+            case 'chirp'
+                segZ = roadprofile.chirp(Lseg, dx, seg.Params{:});
+
+            case 'washboard'
+                segZ = roadprofile.washboard(Lseg, dx, seg.Params{:});
+
+            case 'valley'
+                segZ = roadprofile.valley(Lseg, dx, seg.Params{:});
+
+            case 'step'
+                segZ = roadprofile.step(Lseg, dx, seg.Params{:});
+
+            case 'kink'
+                segZ = roadprofile.kink(Lseg, dx, seg.Params{:});
+
+            case 'edge'
+                segZ = roadprofile.edge(Lseg, dx, seg.Params{:});
+
+            case 'crest'
+                segZ = roadprofile.crest(Lseg, dx, seg.Params{:});
+
             case 'sine'
                 segZ = roadprofile.sine(Lseg, dx, seg.Params{:});
+
             case 'bump'
                 segZ = roadprofile.bump(Lseg, dx, seg.Params{:});
+
             case 'pothole'
                 segZ = roadprofile.pothole(Lseg, dx, seg.Params{:});
+
             case 'flat'
                 segZ = roadprofile.flat(Lseg, dx, seg.Params{:});
+
             otherwise
                 error('roadprofile:unknownPattern', ...
                     'Segment %d has unknown type "%s"', k, seg.Type);

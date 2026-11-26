@@ -232,3 +232,38 @@ added as an optional feature in a future release if needed.
 
 **Empty segments.** An empty `segments` array is valid and produces a
 flat zero profile.
+
+## 14. Stochastic patterns and seed handling
+
+Three patterns are stochastic: `iso8608Profile`, `belgianBlock`,
+`cobblestone`. Each accepts an optional `Seed` name-value argument.
+
+**Reference behavior.** With a `Seed` supplied, the pattern saves the
+global `rng` state, sets `rng(Seed, 'twister')`, generates, and restores
+the global state via `onCleanup`. Without a `Seed`, the pattern uses the
+current global `rng` state and produces a different realization at each
+call.
+
+**Reproducibility.** `compose` derives a distinct seed for every
+stochastic segment, whether or not a global `Seed` is given. The
+derived seed is stored in `p.segments(k).SeedUsed`, so each segment can
+be regenerated individually with
+`pattern(Lseg, dx, ..., Seed=SeedUsed)`. To replay the whole
+composition, save the `SeedUsed` values or pass a global `Seed`.
+
+**Determinism of the generator.** `rng(Seed, 'twister')` pins the
+algorithm, so a given seed produces the same profile regardless of
+which generator was active before. This is independent of the `rng`
+default, which can change across MATLAB releases.
+
+**Direct use.** Patterns called directly with a fixed `Seed` are
+deterministic. Patterns called directly without a `Seed` are not. There
+is no auto-derivation at the pattern level: `compose` is the only
+function that derives seeds automatically, and it does so for all
+stochastic segments it receives.
+
+**Anti-aliasing.** The profiles are sampled at `dx`; features smaller
+than `2*dx` cannot be represented and are not band-limited. Rendering
+a long profile at page width compresses many samples into few pixels
+and may look blocky. For readable figures, use `dx` comparable to
+the smallest feature you want to show, or plot a zoom.

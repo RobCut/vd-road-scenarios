@@ -271,5 +271,35 @@ classdef TestCompose < matlab.unittest.TestCase
             testCase.verifyEqual(p.segments(1).Stop, L);
             testCase.verifyEqual(p.segments(1).Type, "flat");
         end
+
+        function test_compose_cobblestone_reproducible(testCase)
+            %test_compose_cobblestone_reproducible Verify that a
+            %   cobblestone segment is reproducible via SeedUsed.
+            L = 10; dx = 0.005;
+            segs = struct('Start', 0, 'Stop', L, 'Type', "cobblestone", ...
+                'Params', {{0.02, 0.1}});
+            p1 = roadprofile.compose(L, dx, segs, Seed=42);
+            p2 = roadprofile.compose(L, dx, segs, Seed=42);
+            testCase.verifyEqual(p1.z, p2.z, 'AbsTol', 1e-12);
+
+            derivedSeed = p1.segments(1).SeedUsed;
+            pDirect = roadprofile.cobblestone(L, dx, 0.02, 0.1, Seed=derivedSeed);
+            testCase.verifyEqual(p1.z, pDirect.z, 'AbsTol', 1e-12);
+        end
+
+        function test_compose_belgian_reproducible(testCase)
+            %test_compose_belgian_reproducible Verify that a belgianBlock
+            %   segment is reproducible via SeedUsed.
+            L = 10; dx = 0.005;
+            segs = struct('Start', 0, 'Stop', L, 'Type', "belgianBlock", ...
+                'Params', {{0.03, 0.2}});
+            p1 = roadprofile.compose(L, dx, segs, Seed=42);
+            p2 = roadprofile.compose(L, dx, segs, Seed=42);
+            testCase.verifyEqual(p1.z, p2.z, 'AbsTol', 1e-12);
+
+            derivedSeed = p1.segments(1).SeedUsed;
+            pDirect = roadprofile.belgianBlock(L, dx, 0.03, 0.2, Seed=derivedSeed);
+            testCase.verifyEqual(p1.z, pDirect.z, 'AbsTol', 1e-12);
+        end
     end
 end
